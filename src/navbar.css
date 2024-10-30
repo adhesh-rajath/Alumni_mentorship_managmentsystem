@@ -1,0 +1,36 @@
+/* src/navbar.css */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgb(235, 235, 127); /* Dark blue navbar */
+    padding: 10px 20px;
+  }
+  
+  .nav-left {
+    display: flex;
+  }
+  
+  .nav-right {
+    display: flex;
+    gap: 20px; /* Space between the links */
+  }
+  
+  .logo {
+    height: 50px; /* Adjust logo size as needed */
+  }
+  
+  .nav-link {
+    background-color: #f0f0f0; /* Light background color for the boxes */
+    color: darkblue; /* Text color */
+    padding: 10px 15px;
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline */
+    font-weight: bold; /* Make the text bold */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+  }
+  
+  .nav-link:hover {
+    background-color: #e0e0e0; /* Slightly darker background on hover */
+  }
+  
