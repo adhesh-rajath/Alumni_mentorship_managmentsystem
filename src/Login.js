@@ -1,8 +1,7 @@
-// src/Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
+function Login({ setIsLoggedIn }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,8 +24,8 @@ function Login() {
     const data = await response.json();
 
     if (response.ok) {
-      alert('Login successful');
-      navigate('/dashboard'); // Redirect to dashboard upon successful login
+      setIsLoggedIn(true); // Set login status
+      navigate('/home'); // Redirect to home upon successful login
     } else {
       setError(data.message);
     }
