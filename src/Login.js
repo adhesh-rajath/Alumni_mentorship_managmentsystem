@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Import Link from react-router-dom
 
 function Login({ setIsLoggedIn }) {
-  const [username, setUsername] = useState('');
+  const [idnumber, setIdNumber] = useState('');
+  const [role, setRole] = useState('Student');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -16,7 +18,8 @@ function Login({ setIsLoggedIn }) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username,
+        idnumber,
+        role,
         password,
       }),
     });
@@ -24,8 +27,8 @@ function Login({ setIsLoggedIn }) {
     const data = await response.json();
 
     if (response.ok) {
-      setIsLoggedIn(true); // Set login status
-      navigate('/home'); // Redirect to home upon successful login
+      setIsLoggedIn(true); 
+      navigate('/home'); 
     } else {
       setError(data.message);
     }
@@ -37,14 +40,22 @@ function Login({ setIsLoggedIn }) {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="idnumber">ID Number:</label>
           <input
             type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            id="idnumber"
+            value={idnumber}
+            onChange={(e) => setIdNumber(e.target.value)}
             required
           />
+        </div>
+        <div>
+          <label htmlFor="role">Role:</label>
+          <select id="role" value={role} onChange={(e) => setRole(e.target.value)} required>
+            <option value="Student">Student</option>
+            <option value="Alumni">Alumni</option>
+            <option value="Admin">Admin</option>
+          </select>
         </div>
         <div>
           <label htmlFor="password">Password:</label>
@@ -58,7 +69,10 @@ function Login({ setIsLoggedIn }) {
         </div>
         <button type="submit">Sign In</button>
       </form>
-      <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+      {/* Link to the signup page if the user is not signed in */}
+      <p>
+        Don't have an account? <Link to="/signUp">Sign Up</Link>
+      </p>
     </div>
   );
 }

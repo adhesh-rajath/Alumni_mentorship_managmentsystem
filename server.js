@@ -2,8 +2,8 @@ import express from 'express';
 import mysql from 'mysql2/promise'; // Promise-based MySQL client
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken'; // for generating tokens (optional, for real app security)
+import bcrypt from 'bcryptjs'; // For hashing passwords
+// Removed jwt import as it is no longer needed
 
 const app = express();
 const port = 5000;
@@ -21,13 +21,51 @@ const db = await mysql.createConnection({
   database: 'mentorship_db',
 });
 
-// Sign-In Route
-app.post('/signin', async (req, res) => {
-  const { username, password } = req.body;
+// Helper function to validate ID number based on role
+const validateIdNumber = (role, idnumber) => {
+  if (role === 'Alumni' && idnumber.startsWith('ALU')) return true;
+  if (role === 'Admin' && idnumber.startsWith('ADM')) return true;
+  if (role === 'Student' && idnumber.startsWith('PES1UG')) return true;
+  return false;
+};
+
+// Sign-Up Route
+app.post('/signup', async (req, res) => {
+  const { email, password, idnumber, role } = req.body;
+
+  // Validate role-based ID number
+  if (!validateIdNumber(role, idnumber)) {
+    return res.status(400).json({ message: 'Invalid ID number for the specified role' });
+  }
 
   try {
-    // Fetch the user from the database
-    const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+    // Check if ID number already exists (Primary Key constraint)
+    const [existingUser] = await db.execute('SELECT * FROM loginuser WHERE idnumber = ?', [idnumber]);
+    if (existingUser.length > 0) {
+      return res.status(409).json({ message: 'ID number already exists' });
+    }
+
+    // Hash password for security
+   // const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert the new user into the database
+    const query = 'INSERT INTO loginuser (email, password, idnumber, role) VALUES (?, ?, ?, ?)';
+    await db.execute(query, [email, password, idnumber, role]);
+
+    res.status(201).json({ message: 'User registered successfully!' });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: 'Error registering user' });
+  }
+});
+
+// Sign-In Route
+app.post('/signin', async (req, res) => {
+  const { idnumber, password, role } = req.body;
+
+  try {
+    // Fetch the user based on ID number and role
+    const [rows] = await db.execute('SELECT * FROM loginuser WHERE idnumber = ? AND role = ?', [idnumber, role]);
     
     if (rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
@@ -35,40 +73,27 @@ app.post('/signin', async (req, res) => {
 
     const user = rows[0];
 
-    // Check if the password matches (plain text here)
-    const isPasswordValid = password === user.password; // If you have hashed passwords, use bcrypt.compare()
+    // Compare the password with the stored password
+    const isPasswordValid = (password === user.password); // Assuming password is stored as plaintext
+
+    console.log(password, user.password, isPasswordValid);
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid password' });
     }
 
-    // Optionally, generate a token here (if you want to add JWT for secure sessions)
-    // const token = jwt.sign({ userId: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
-
-    // Successful sign-in, redirect to dashboard
-    res.status(200).json({ message: 'Sign-in successful!', user: { username, email: user.email } });
+    // No JWT token generation since it's optional
+    res.status(200).json({ 
+      message: 'Sign-in successful!', 
+      user: { email: user.email }
+    });
   } catch (error) {
     console.error('Sign-in error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Existing sign-up route
-app.post('/signup', async (req, res) => {
-  const { username, email, password } = req.body;
-
-  try {
-    const query = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-    await db.execute(query, [username, email, password]);
-
-    res.status(201).json({ message: 'User registered successfully!', user: { username, email } });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error registering user' });
-  }
-});
-
-// Start server
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
