@@ -1,8 +1,9 @@
+// Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
+import { Link } from 'react-router-dom';
 
-function Login({ setIsLoggedIn }) {
+function Login({ setUser }) {
   const [idnumber, setIdNumber] = useState('');
   const [role, setRole] = useState('Student');
   const [password, setPassword] = useState('');
@@ -27,8 +28,8 @@ function Login({ setIsLoggedIn }) {
     const data = await response.json();
 
     if (response.ok) {
-      setIsLoggedIn(true); 
-      navigate('/home'); 
+      setUser({ idnumber, role, email: data.user.email }); // Set the user state with required fields
+      navigate(`/${role.toLowerCase()}dashboard`); // Redirect based on role
     } else {
       setError(data.message);
     }
@@ -69,9 +70,8 @@ function Login({ setIsLoggedIn }) {
         </div>
         <button type="submit">Sign In</button>
       </form>
-      {/* Link to the signup page if the user is not signed in */}
       <p>
-        Don't have an account? <Link to="/signUp">Sign Up</Link>
+        Don't have an account? <Link to="/signup">Sign Up</Link>
       </p>
     </div>
   );

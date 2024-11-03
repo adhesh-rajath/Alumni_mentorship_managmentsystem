@@ -1,19 +1,22 @@
+// App.js
 import React, { useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Home from './Home';
 import About from './About';
 import Login from './Login';
 import SignUp from './SignUp';
-import Dashboard from './Dashboard';
+import StudentDashboard from './StudentDashboard';
+import AlumniDashboard from './AlumniDashboard';
+import AdminDashboard from './AdminDashboard';
 import logo from './logoPesu.png';
 import './navbar.css';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null); // Stores user data on login
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    setUser(null);
     navigate('/login');
   };
 
@@ -27,10 +30,11 @@ function App() {
             </Link>
           </div>
           <div className="nav-right">
-            {isLoggedIn ? (
+            {user ? (
               <>
+                <span>Welcome, {user.idnumber}</span>
                 <Link to="/about">About</Link>
-                <Link to="/dashboard">Dashboard</Link>
+                <Link to={`/${user.role.toLowerCase()}dashboard`}>Dashboard</Link>
                 <button onClick={handleLogout}>Logout</button>
               </>
             ) : (
@@ -45,15 +49,14 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={isLoggedIn ? <Home /> : <Login setIsLoggedIn={setIsLoggedIn} />}
+          element={user ? <Home /> : <Login setUser={setUser} />}
         />
         <Route path="/about" element={<About />} />
-        <Route
-          path="/login"
-          element={<Login setIsLoggedIn={setIsLoggedIn} />}
-        />
+        <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/studentdashboard" element={<StudentDashboard user={user} />} />
+        <Route path="/alumnidashboard" element={<AlumniDashboard />} />
+        <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/home" element={<Home />} />
       </Routes>
     </div>

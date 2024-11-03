@@ -3,7 +3,6 @@ import mysql from 'mysql2/promise'; // Promise-based MySQL client
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import bcrypt from 'bcryptjs'; // For hashing passwords
-// Removed jwt import as it is no longer needed
 
 const app = express();
 const port = 5000;
@@ -46,7 +45,7 @@ app.post('/signup', async (req, res) => {
     }
 
     // Hash password for security
-   // const hashedPassword = await bcrypt.hash(password, 10);
+    // const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert the new user into the database
     const query = 'INSERT INTO loginuser (email, password, idnumber, role) VALUES (?, ?, ?, ?)';
@@ -66,7 +65,7 @@ app.post('/signin', async (req, res) => {
   try {
     // Fetch the user based on ID number and role
     const [rows] = await db.execute('SELECT * FROM loginuser WHERE idnumber = ? AND role = ?', [idnumber, role]);
-    
+
     if (rows.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -83,13 +82,38 @@ app.post('/signin', async (req, res) => {
     }
 
     // No JWT token generation since it's optional
-    res.status(200).json({ 
-      message: 'Sign-in successful!', 
+    res.status(200).json({
+      message: 'Sign-in successful!',
       user: { email: user.email }
     });
   } catch (error) {
     console.error('Sign-in error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add Student Details Route
+app.post('/students', async (req, res) => {
+  const { student_id, fname, lastname, branch } = req.body;
+
+  try {
+    // Fetch email associated with student_id from loginuser table
+    const [userRows] = await db.execute('SELECT email FROM loginuser WHERE idnumber = ?', [student_id]);
+
+    if (userRows.length === 0) {
+      return res.status(404).json({ message: 'User not found in loginuser table' });
+    }
+
+    const email = userRows[0].email;
+
+    // Insert data into students table
+    const query = 'INSERT INTO students (student_id, email, fname, lastname, branch) VALUES (?, ?, ?, ?, ?)';
+    await db.execute(query, [student_id, email, fname, lastname, branch]);
+
+    res.status(201).json({ message: 'Student details added successfully!' });
+  } catch (error) {
+    console.error('Error adding student details:', error);
+    res.status(500).json({ message: 'Error adding student details' });
   }
 });
 
