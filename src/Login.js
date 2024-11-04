@@ -29,7 +29,7 @@ function Login({ setUser }) {
 
     if (response.ok) {
       setUser({ idnumber, role, email: data.user.email }); // Set the user state with required fields
-      navigate(`/${role.toLowerCase()}dashboard`); // Redirect based on role
+      navigate(`/`); // Redirect based on role
     } else {
       setError(data.message);
     }

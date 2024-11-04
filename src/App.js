@@ -55,7 +55,7 @@ function App() {
         <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/studentdashboard" element={<StudentDashboard user={user} />} />
-        <Route path="/alumnidashboard" element={<AlumniDashboard />} />
+        <Route path="/alumnidashboard" element={<AlumniDashboard user={user} />} />
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/home" element={<Home />} />
       </Routes>

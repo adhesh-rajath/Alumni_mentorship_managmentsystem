@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const StudentDashboard = ({ user }) => {
-  const navigate = useNavigate(); // Initialize navigate hook
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     student_id: user.idnumber,
@@ -16,6 +16,32 @@ const StudentDashboard = ({ user }) => {
     lastname: '',
     branch: '',
   });
+
+  const [existingStudent, setExistingStudent] = useState(false);
+
+  useEffect(() => {
+    // Check if student already exists in the database
+    const checkStudentExists = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/students/${user.idnumber}`);
+        const data = await response.json();
+
+        if (response.ok && data.exists) {
+          setExistingStudent(true);
+          setFormData({
+            student_id: user.idnumber, // Maintain the student ID
+            fname: data.student.fname,
+            lastname: data.student.lastname,
+            branch: data.student.branch,
+          });
+        }
+      } catch (error) {
+        console.error('Error checking student existence:', error);
+      }
+    };
+
+    checkStudentExists();
+  }, [user.idnumber]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,11 +69,11 @@ const StudentDashboard = ({ user }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
-        
+
         const data = await response.json();
         if (response.ok) {
-          alert('Student data saved successfully!');
-          navigate('/'); // Redirect to home page
+          alert(`Student details ${existingStudent ? 'updated' : 'saved'} successfully!`);
+          navigate('/');
         } else {
           alert(`Error: ${data.message}`);
         }
@@ -60,6 +86,11 @@ const StudentDashboard = ({ user }) => {
   return (
     <div>
       <h2>Student Dashboard</h2>
+      {existingStudent ? (
+        <p>You have already submitted your details. Enter again to update.</p>
+      ) : (
+        <p>Please fill in your details below.</p>
+      )}
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="fname">First Name:</label>
@@ -100,7 +131,7 @@ const StudentDashboard = ({ user }) => {
           {errors.branch && <p style={{ color: 'red' }}>{errors.branch}</p>}
         </div>
 
-        <button type="submit">Submit</button>
+        <button type="submit">{existingStudent ? 'Update' : 'Submit'}</button>
       </form>
     </div>
   );
