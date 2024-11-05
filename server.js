@@ -29,6 +29,7 @@ const validateIdNumber = (role, idnumber) => {
 };
 
 // Sign-Up Route
+// Sign-Up Route
 app.post('/signup', async (req, res) => {
   const { email, password, idnumber, role } = req.body;
 
@@ -38,8 +39,10 @@ app.post('/signup', async (req, res) => {
   }
 
   try {
-    // Check if ID number already exists (Primary Key constraint)
+    // Connect to the database
     const db = await mysql.createConnection(dbConfig);
+
+    // Check if ID number already exists
     const [existingUser] = await db.execute('SELECT * FROM loginuser WHERE idnumber = ?', [idnumber]);
 
     if (existingUser.length > 0) {
@@ -49,12 +52,25 @@ app.post('/signup', async (req, res) => {
     // Hash password for security
     //const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert the new user into the database
+    // Insert the new user into the loginuser table
     const query = 'INSERT INTO loginuser (email, password, idnumber, role) VALUES (?, ?, ?, ?)';
     await db.execute(query, [email, password, idnumber, role]);
 
+    // Default values
+    const defaultBio = 'No bio available';
+    const defaultLink = 'No link available';
+
+    // Insert into profile_students or profile_alumni based on role
+    if (role === 'Student') {
+      const studentProfileId = `${idnumber}prof`;
+      await db.execute('INSERT INTO profile_students (id, profile_id, bio) VALUES (?, ?, ?)', [idnumber, studentProfileId, defaultBio]);
+    } else if (role === 'Alumni') {
+      const alumniProfileId = `${idnumber}prof`;
+      await db.execute('INSERT INTO profile_alumni (id, profile_id, bio, githublink) VALUES (?, ?, ?, ?)', [idnumber, alumniProfileId, defaultBio, defaultLink]);
+    }
+
     res.status(201).json({ message: 'User registered successfully!' });
-    await db.end(); // Close connection
+    await db.end();
   } catch (error) {
     console.error('Error registering user:', error);
     res.status(500).json({ message: 'Error registering user' });
@@ -262,6 +278,363 @@ app.get('/alumni/:idnumber', async (req, res) => {
 });
 
 
+
+// Fetch bio from profile_students table
+// app.get('/api/profile/students/:idnumber', async (req, res) => {
+//   console.log('Fetching bio for student ID:', req.params.id); // Debug log
+//   const { idnumber } = req.params;
+//   try {
+//     const db = await mysql.createConnection(dbConfig);
+
+//     const [rows] = await db.execute(
+//       'SELECT bio FROM profile_students WHERE id = ?',
+//       [idnumber]
+//     );
+
+//     if (rows.length > 0) {
+//       res.status(200).json({ bio: rows[0].bio });
+//     } else {
+//       res.status(404).json({ message: 'Profile not found' });
+//     }
+
+//     await db.end();
+//   } catch (error) {
+//     console.error('Error fetching bio:', error);
+//     res.status(500).json({ message: 'Error fetching bio' });
+//   }
+// });
+
+// // Update bio in profile_students table
+// app.put('/api/profile/students', async (req, res) => {
+//   const { id, bio } = req.body;
+//   console.log('Updating bio for student ID:', id); // Debug log
+//   try {
+//     const db = await mysql.createConnection(dbConfig);
+
+//     const [result] = await db.execute(
+//       'UPDATE profile_students SET bio = ? WHERE id = ?',
+//       [bio, id]
+//     );
+
+//     if (result.affectedRows > 0) {
+//       res.status(200).json({ message: 'Bio updated successfully' });
+//     } else {
+//       res.status(404).json({ message: 'Profile not found' });
+//     }
+
+//     await db.end();
+//   } catch (error) {
+//     console.error('Error updating bio:', error);
+//     res.status(500).json({ message: 'Error updating bio' });
+//   }
+// });
+// //
+
+// Route to fetch bio from profile_students by student ID
+// Route to get the bio of a student based on their ID number
+// app.get('/api/profile/students/:idnumber', (req, res) => {
+//   const { idnumber } = req.params;
+
+//   const query = 'SELECT bio FROM profile_students WHERE id = ?';
+  
+//   db.query(query, [idnumber], (err, results) => {
+//     if (err) {
+//       console.error('Database query error:', err);  // Logs specific error in server console
+//       return res.status(500).json({ error: 'Database query error', details: err.message });
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).json({ error: 'Student not found' });
+//     }
+
+//     res.json({ bio: results[0].bio });
+//   });
+// });
+
+
+// Fetch bio from profile_students by student ID
+app.get('/api/profile/students/:idnumber', async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const [rows] = await db.execute('SELECT bio FROM profile_students WHERE id = ?', [idnumber]);
+
+    if (rows.length > 0) {
+      res.status(200).json({ bio: rows[0].bio });
+    } else {
+      res.status(404).json({ message: 'Profile not found' });
+    }
+
+    await db.end();
+  } catch (error) {
+    console.error('Error fetching bio:', error);
+    res.status(500).json({ message: 'Error fetching bio' });
+  }
+});
+
+
+// Update bio in profile_students table
+app.put('/api/profile/students', async (req, res) => {
+  const { id, bio } = req.body;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+
+    const [result] = await db.execute(
+      'UPDATE profile_students SET bio = ? WHERE id = ?',
+      [bio, id]
+    );
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ message: 'Bio updated successfully' });
+    } else {
+      res.status(404).json({ message: 'Profile not found' });
+    }
+
+    await db.end();
+  } catch (error) {
+    console.error('Error updating bio:', error);
+    res.status(500).json({ message: 'Error updating bio' });
+  }
+});
+
+
+
+// Get skills for a specific student by id
+// app.get('/api/profile/students/:id/skills', async (req, res) => {
+//   const studentId = req.params.id;
+//   console.log('Attempting to add skills for profile_id:', studentId);
+
+//   try {
+//     const db = await mysql.createConnection(dbConfig);
+
+//     const [skills] = await db.execute(
+//       'SELECT skill FROM students_skills WHERE id = ?',
+//       [studentId]
+//     );
+
+//     res.status(200).json({ skills: skills.map(row => row.skill) });
+
+//     await db.end();
+//   } catch (error) {
+//     console.error('Error fetching skills:', error);
+//     res.status(500).json({ message: 'Error fetching skills' });
+//   }
+// });
+
+
+
+// // Add skills for a specific student by id
+// app.post('/api/profile/students/:id/skills', async (req, res) => {
+//   const studentId = req.params.id;
+//   const { skills } = req.body; // Array of skills
+
+//   try {
+//     const db = await mysql.createConnection(dbConfig);
+
+//     // Insert each skill individually
+//     const insertPromises = skills.map(skill =>
+//       db.execute('INSERT INTO students_skills (id, skill) VALUES (?, ?)', [studentId, skill])
+//     );
+
+//     await Promise.all(insertPromises);
+
+//     res.status(200).json({ message: 'Skills added successfully' });
+
+//     await db.end();
+//   } catch (error) {
+//     console.error('Error adding skills:', error);
+//     res.status(500).json({ message: 'Error adding skills' });
+//   }
+// });
+
+
+// // Delete a skill for a specific student by id
+// app.delete('/api/profile/students/:id/skills', async (req, res) => {
+//   const studentId = req.params.id;
+//   const { skill } = req.body;
+
+//   try {
+//     const db = await mysql.createConnection(dbConfig);
+
+//     const [result] = await db.execute(
+//       'DELETE FROM students_skills WHERE id = ? AND skill = ?',
+//       [studentId, skill]
+//     );
+
+//     if (result.affectedRows > 0) {
+//       res.status(200).json({ message: 'Skill deleted successfully' });
+//     } else {
+//       res.status(404).json({ message: 'Skill not found' });
+//     }
+
+//     await db.end();
+//   } catch (error) {
+//     console.error('Error deleting skill:', error);
+//     res.status(500).json({ message: 'Error deleting skill' });
+//   }
+// });
+
+// Get skills for a specific student by ID
+// Get skills for a specific student by ID
+app.get('/students/:idnumber/skills', async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const [skills] = await db.execute('SELECT skill FROM students_skills WHERE id = ?', [idnumber]);
+
+    res.status(200).json(skills.map(row => ({ skill: row.skill }))); // Format as array of objects
+    await db.end();
+  } catch (error) {
+    console.error('Error fetching skills:', error);
+    res.status(500).json({ message: 'Error fetching skills' });
+  }
+});
+
+
+// Add a new skill for a specific student
+app.post('/students/:idnumber/skills', async (req, res) => {
+  const { idnumber } = req.params;
+  const { skill } = req.body;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    await db.execute('INSERT INTO students_skills (id, skill) VALUES (?, ?)', [idnumber, skill]);
+
+    res.status(201).json({ message: 'Skill added successfully' });
+    await db.end();
+  } catch (error) {
+    console.error('Error adding skill:', error);
+    res.status(500).json({ message: 'Error adding skill' });
+  }
+});
+
+
+// Delete a specific skill for a student by ID
+app.delete('/students/:idnumber/skills', async (req, res) => {
+  const { idnumber } = req.params;
+  const { skill } = req.body;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const result = await db.execute('DELETE FROM students_skills WHERE id = ? AND skill = ?', [idnumber, skill]);
+
+    if (result[0].affectedRows > 0) {
+      res.status(200).json({ message: 'Skill deleted' });
+    } else {
+      res.status(404).json({ message: 'Skill not found' });
+    }
+    await db.end();
+  } catch (error) {
+    console.error('Error deleting skill:', error);
+    res.status(500).json({ message: 'Error deleting skill' });
+  }
+});
+
+
+
+// Fetch expertise for a specific alumnus
+app.get('/alumni/:idnumber/expertise', async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const [rows] = await db.execute('SELECT expertise FROM alumni_expertise WHERE id = ?', [idnumber]);
+    const expertiseList = rows.map(row => row.expertise);
+    res.status(200).json(expertiseList);
+    await db.end();
+  } catch (error) {
+    console.error('Error fetching expertise:', error);
+    res.status(500).json({ message: 'Error fetching expertise' });
+  }
+});
+
+
+// Add a new area of expertise for an alumnus
+app.post('/alumni/:idnumber/expertise', async (req, res) => {
+  const { idnumber } = req.params;
+  const { expertise } = req.body;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    await db.execute('INSERT INTO alumni_expertise (id, expertise) VALUES (?, ?)', [idnumber, expertise]);
+    res.status(201).json({ message: 'Expertise added' });
+    await db.end();
+  } catch (error) {
+    console.error('Error adding expertise:', error);
+    res.status(500).json({ message: 'Error adding expertise' });
+  }
+});
+
+// Delete a specific expertise for an alumnus by ID
+app.delete('/alumni/:idnumber/expertise', async (req, res) => {
+  const { idnumber } = req.params;
+  const { expertise } = req.body;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const result = await db.execute('DELETE FROM alumni_expertise WHERE id = ? AND expertise = ?', [idnumber, expertise]);
+
+    if (result[0].affectedRows > 0) {
+      res.status(200).json({ message: 'Expertise deleted' });
+    } else {
+      res.status(404).json({ message: 'Expertise not found' });
+    }
+    await db.end();
+  } catch (error) {
+    console.error('Error deleting expertise:', error);
+    res.status(500).json({ message: 'Error deleting expertise' });
+  }
+});
+
+
+
+app.get('/api/profile/alumni/:idnumber', async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const [rows] = await db.execute('SELECT bio, githublink FROM profile_alumni WHERE id = ?', [idnumber]);
+
+    if (rows.length > 0) {
+      res.status(200).json({ bio: rows[0].bio, githublink: rows[0].githublink });
+    } else {
+      res.status(404).json({ message: 'Profile not found' });
+    }
+
+    await db.end();
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ message: 'Error fetching profile' });
+  }
+});
+
+// Update alumni profile (PUT request)
+app.put('/api/profile/alumni', async (req, res) => {
+  const { id, bio, githublink } = req.body;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+
+    const [result] = await db.execute(
+      'UPDATE profile_alumni SET bio = ?, githublink = ? WHERE id = ?',
+      [bio, githublink, id]
+    );
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({ message: 'Profile updated successfully' });
+    } else {
+      res.status(404).json({ message: 'Profile not found' });
+    }
+
+    await db.end();
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Error updating profile' });
+  }
+});
 
 // Start the server
 app.listen(port, () => {
