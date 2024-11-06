@@ -9,13 +9,15 @@ import AlumniDashboard from './AlumniDashboard';
 import AdminDashboard from './AdminDashboard';
 import StudentProfile from './StudentProfile';
 import AlumniProfile from './AlumniProfile';
-import StudentSkill from './StudentSkill';  // New StudentSkill component
-import AlumniExpertise from './AlumniExpertise'; // New AlumniExpertise component
+import StudentSkill from './StudentSkill';
+import AlumniExpertise from './AlumniExpertise';
+import FindMentors from './FindMentors'; // New FindMentors component
+import ViewRequests from './ViewRequests'; // New ViewRequests component
 import logo from './logoPesu.png';
 import './navbar.css';
 
 function App() {
-  const [user, setUser] = useState(null); // Stores user data on login
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -41,6 +43,11 @@ function App() {
                 <Link to={`/${user.role.toLowerCase() === 'student' ? 'profile_student' : 'profile_alumni'}`}>Profile</Link>
                 {user.role.toLowerCase() === 'student' && <Link to="/studentskill">Student Skill</Link>}
                 {user.role.toLowerCase() === 'alumni' && <Link to="/alumniexpertise">Alumni Expertise</Link>}
+                
+                {/* New Links based on role */}
+                {user.role.toLowerCase() === 'student' && <Link to="/findmentors">Find Mentors</Link>}
+                {user.role.toLowerCase() === 'alumni' && <Link to="/viewrequests">View Requests</Link>}
+                
                 <button onClick={handleLogout}>Logout</button>
               </>
             ) : (
@@ -65,6 +72,10 @@ function App() {
         <Route path="/profile_alumni" element={<AlumniProfile user={user} />} />
         <Route path="/studentskill" element={<StudentSkill user={user} />} />
         <Route path="/alumniexpertise" element={<AlumniExpertise user={user} />} />
+
+        {/* New Routes */}
+        <Route path="/findmentors" element={<FindMentors user={user} />} />
+        <Route path="/viewrequests" element={<ViewRequests user={user} />} />
       </Routes>
     </div>
   );

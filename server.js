@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import bcrypt from 'bcryptjs'; // For hashing passwords
 
+import { v4 as uuidv4 } from 'uuid';
 const app = express();
 const port = 5000;
 
@@ -277,81 +278,6 @@ app.get('/alumni/:idnumber', async (req, res) => {
   }
 });
 
-
-
-// Fetch bio from profile_students table
-// app.get('/api/profile/students/:idnumber', async (req, res) => {
-//   console.log('Fetching bio for student ID:', req.params.id); // Debug log
-//   const { idnumber } = req.params;
-//   try {
-//     const db = await mysql.createConnection(dbConfig);
-
-//     const [rows] = await db.execute(
-//       'SELECT bio FROM profile_students WHERE id = ?',
-//       [idnumber]
-//     );
-
-//     if (rows.length > 0) {
-//       res.status(200).json({ bio: rows[0].bio });
-//     } else {
-//       res.status(404).json({ message: 'Profile not found' });
-//     }
-
-//     await db.end();
-//   } catch (error) {
-//     console.error('Error fetching bio:', error);
-//     res.status(500).json({ message: 'Error fetching bio' });
-//   }
-// });
-
-// // Update bio in profile_students table
-// app.put('/api/profile/students', async (req, res) => {
-//   const { id, bio } = req.body;
-//   console.log('Updating bio for student ID:', id); // Debug log
-//   try {
-//     const db = await mysql.createConnection(dbConfig);
-
-//     const [result] = await db.execute(
-//       'UPDATE profile_students SET bio = ? WHERE id = ?',
-//       [bio, id]
-//     );
-
-//     if (result.affectedRows > 0) {
-//       res.status(200).json({ message: 'Bio updated successfully' });
-//     } else {
-//       res.status(404).json({ message: 'Profile not found' });
-//     }
-
-//     await db.end();
-//   } catch (error) {
-//     console.error('Error updating bio:', error);
-//     res.status(500).json({ message: 'Error updating bio' });
-//   }
-// });
-// //
-
-// Route to fetch bio from profile_students by student ID
-// Route to get the bio of a student based on their ID number
-// app.get('/api/profile/students/:idnumber', (req, res) => {
-//   const { idnumber } = req.params;
-
-//   const query = 'SELECT bio FROM profile_students WHERE id = ?';
-  
-//   db.query(query, [idnumber], (err, results) => {
-//     if (err) {
-//       console.error('Database query error:', err);  // Logs specific error in server console
-//       return res.status(500).json({ error: 'Database query error', details: err.message });
-//     }
-
-//     if (results.length === 0) {
-//       return res.status(404).json({ error: 'Student not found' });
-//     }
-
-//     res.json({ bio: results[0].bio });
-//   });
-// });
-
-
 // Fetch bio from profile_students by student ID
 app.get('/api/profile/students/:idnumber', async (req, res) => {
   const { idnumber } = req.params;
@@ -400,83 +326,6 @@ app.put('/api/profile/students', async (req, res) => {
 });
 
 
-
-// Get skills for a specific student by id
-// app.get('/api/profile/students/:id/skills', async (req, res) => {
-//   const studentId = req.params.id;
-//   console.log('Attempting to add skills for profile_id:', studentId);
-
-//   try {
-//     const db = await mysql.createConnection(dbConfig);
-
-//     const [skills] = await db.execute(
-//       'SELECT skill FROM students_skills WHERE id = ?',
-//       [studentId]
-//     );
-
-//     res.status(200).json({ skills: skills.map(row => row.skill) });
-
-//     await db.end();
-//   } catch (error) {
-//     console.error('Error fetching skills:', error);
-//     res.status(500).json({ message: 'Error fetching skills' });
-//   }
-// });
-
-
-
-// // Add skills for a specific student by id
-// app.post('/api/profile/students/:id/skills', async (req, res) => {
-//   const studentId = req.params.id;
-//   const { skills } = req.body; // Array of skills
-
-//   try {
-//     const db = await mysql.createConnection(dbConfig);
-
-//     // Insert each skill individually
-//     const insertPromises = skills.map(skill =>
-//       db.execute('INSERT INTO students_skills (id, skill) VALUES (?, ?)', [studentId, skill])
-//     );
-
-//     await Promise.all(insertPromises);
-
-//     res.status(200).json({ message: 'Skills added successfully' });
-
-//     await db.end();
-//   } catch (error) {
-//     console.error('Error adding skills:', error);
-//     res.status(500).json({ message: 'Error adding skills' });
-//   }
-// });
-
-
-// // Delete a skill for a specific student by id
-// app.delete('/api/profile/students/:id/skills', async (req, res) => {
-//   const studentId = req.params.id;
-//   const { skill } = req.body;
-
-//   try {
-//     const db = await mysql.createConnection(dbConfig);
-
-//     const [result] = await db.execute(
-//       'DELETE FROM students_skills WHERE id = ? AND skill = ?',
-//       [studentId, skill]
-//     );
-
-//     if (result.affectedRows > 0) {
-//       res.status(200).json({ message: 'Skill deleted successfully' });
-//     } else {
-//       res.status(404).json({ message: 'Skill not found' });
-//     }
-
-//     await db.end();
-//   } catch (error) {
-//     console.error('Error deleting skill:', error);
-//     res.status(500).json({ message: 'Error deleting skill' });
-//   }
-// });
-
-// Get skills for a specific student by ID
 // Get skills for a specific student by ID
 app.get('/students/:idnumber/skills', async (req, res) => {
   const { idnumber } = req.params;
@@ -635,6 +484,197 @@ app.put('/api/profile/alumni', async (req, res) => {
     res.status(500).json({ message: 'Error updating profile' });
   }
 });
+
+
+
+// API endpoint to get all alumni with their expertise
+// API endpoint to get all alumni with their expertise
+app.get('/api/alumni', async (req, res) => {
+  const query = `
+    SELECT 
+      a.alumni_id, 
+      a.fname, 
+      a.lastname, 
+      a.graduation_year, 
+      a.industry, 
+      p.bio, 
+      p.githublink,
+      GROUP_CONCAT(e.expertise) AS expertise
+    FROM alumni a
+    LEFT JOIN profile_alumni p ON a.alumni_id = p.id
+    LEFT JOIN alumni_expertise e ON a.alumni_id = e.id
+    GROUP BY a.alumni_id;
+  `;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const [results] = await db.execute(query);
+
+    // Format results to include expertise as an array
+    const formattedResults = results.map(row => ({
+      alumni_id: row.alumni_id,
+      fname: row.fname,
+      lastname: row.lastname,
+      graduation_year: row.graduation_year,
+      industry: row.industry,
+      bio: row.bio,
+      githublink: row.githublink,
+      expertise: row.expertise ? row.expertise.split(',') : [], // Convert to array
+    }));
+
+    res.json(formattedResults);
+    await db.end(); // Close the database connection
+  } catch (error) {
+    console.error('Error fetching alumni:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.post('/api/requestMentorship', async (req, res) => {
+  const { alumni_id, student_id, branch, topic } = req.body;
+  const request_id = uuidv4(); // Generate a unique ID for the request
+
+  // Check if any of the required fields are missing
+  if (!alumni_id || !student_id || !branch || !topic) {
+    return res.status(400).json({ error: 'Missing required fields: alumni_id, student_id, branch, topic' });
+  }
+
+  // SQL query to insert the request into the mentorship_requests table
+  const query = `
+    INSERT INTO mentor_requests (request_id, alumni_id, student_id, branch, topic)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  try {
+    // Create a connection to the database
+    const db = await mysql.createConnection(dbConfig);
+    
+    // Execute the query with parameters
+    const [results] = await db.execute(query, [request_id, alumni_id, student_id, branch, topic]);
+
+    // Close the database connection
+    await db.end();
+
+    // Send a success response
+    res.status(201).json({ message: 'Mentorship request sent successfully', request_id });
+  } catch (error) {
+    console.error('Error inserting mentorship request:', error);
+    res.status(500).json({ error: 'Failed to send mentorship request' });
+  }
+});
+
+
+// server.js
+app.get('/api/studentman/:student_id', async (req, res) => {
+  const student_id = req.params.student_id;
+  
+  try {
+    // Create a connection to the database
+    const db = await mysql.createConnection(dbConfig);
+    
+    // Execute the query
+    const [student] = await db.execute('SELECT branch FROM students WHERE student_id = ?', [student_id]);
+
+    // Close the connection
+    await db.end();
+
+    if (student.length === 0) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    
+    res.json(student[0]);
+  } catch (error) {
+    console.error('Error fetching student details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// app.post('/api/mentor-requests', async (req, res) => {
+//   const { alumni_id, student_id, topic } = req.body;
+
+//   if (!alumni_id || !student_id || !topic) {
+//     return res.status(400).json({ message: 'alumni_id, student_id, and topic are required' });
+//   }
+
+//   try {
+//     const db = await mysql.createConnection(dbConfig);
+
+//     // Fetch student branch
+//     const [studentRows] = await db.execute('SELECT branch FROM students WHERE student_id = ?', [student_id]);
+//     if (studentRows.length === 0) {
+//       await db.end();
+//       return res.status(404).json({ message: 'Student not found' });
+//     }
+//     const studentBranch = studentRows[0].branch;
+
+//     // Fetch alumni industry
+//     const [alumniRows] = await db.execute('SELECT industry FROM alumni WHERE alumni_id = ?', [alumni_id]);
+//     if (alumniRows.length === 0) {
+//       await db.end();
+//       return res.status(404).json({ message: 'Alumni not found' });
+//     }
+//     const alumniIndustry = alumniRows[0].industry;
+
+//     // Validate branch matches industry
+//     if (studentBranch !== alumniIndustry) {
+//       await db.end();
+//       return res.status(400).json({ message: 'Student branch does not match alumni industry' });
+//     }
+
+//     // Count existing requests between this student and alumni
+//     const [countRows] = await db.execute(
+//       'SELECT COUNT(*) AS requestCount FROM mentor_requests WHERE student_id = ? AND alumni_id = ?',
+//       [student_id, alumni_id]
+//     );
+//     const requestCount = countRows[0].requestCount;
+//     const nthRequest = requestCount + 1;
+
+//     // Generate request_id
+//     const request_id = `${student_id}_${alumni_id}_${nthRequest}`;
+
+//     // Insert the new mentorship request
+//     await db.execute(
+//       'INSERT INTO mentor_requests (request_id, alumni_id, student_id, branch, topic) VALUES (?, ?, ?, ?, ?)',
+//       [request_id, alumni_id, student_id, studentBranch, topic]
+//     );
+
+//     await db.end();
+
+//     res.status(201).json({ message: 'Mentorship request created successfully', request_id });
+//   } catch (error) {
+//     console.error('Error creating mentorship request:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+
+// // Route to fetch mentorship requests for a student
+// app.get('/api/mentor-requests', async (req, res) => {
+//   const { student_id } = req.query;
+
+//   if (!student_id) {
+//     return res.status(400).json({ message: 'student_id is required' });
+//   }
+
+//   try {
+//     const db = await mysql.createConnection(dbConfig);
+
+//     const [rows] = await db.execute(
+//       'SELECT request_id, alumni_id, topic, branch FROM mentor_requests WHERE student_id = ?',
+//       [student_id]
+//     );
+
+//     await db.end();
+
+//     res.status(200).json(rows);
+//   } catch (error) {
+//     console.error('Error fetching mentorship requests:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+
 
 // Start the server
 app.listen(port, () => {
