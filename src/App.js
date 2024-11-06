@@ -15,7 +15,7 @@ import FindMentors from './FindMentors'; // New FindMentors component
 import ViewRequests from './ViewRequests'; // New ViewRequests component
 import logo from './logoPesu.png';
 import './navbar.css';
-
+import StudentSessions from './StudentSessions';
 function App() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -48,6 +48,9 @@ function App() {
                 {user.role.toLowerCase() === 'student' && <Link to="/findmentors">Find Mentors</Link>}
                 {user.role.toLowerCase() === 'alumni' && <Link to="/viewrequests">View Requests</Link>}
                 
+                {user.role.toLowerCase() === 'student' && <Link to="/studentsessions">Student Sessions</Link>}
+
+
                 <button onClick={handleLogout}>Logout</button>
               </>
             ) : (
@@ -74,6 +77,7 @@ function App() {
         <Route path="/alumniexpertise" element={<AlumniExpertise user={user} />} />
 
         {/* New Routes */}
+        <Route path="/studentsessions" element={<StudentSessions user={user} />} />
         <Route path="/findmentors" element={<FindMentors user={user} />} />
         <Route path="/viewrequests" element={<ViewRequests user={user} />} />
       </Routes>

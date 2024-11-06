@@ -540,18 +540,28 @@ app.post('/api/requestMentorship', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields: alumni_id, student_id, branch, topic' });
   }
 
-  // SQL query to insert the request into the mentorship_requests table
-  const query = `
-    INSERT INTO mentor_requests (request_id, alumni_id, student_id, branch, topic)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
   try {
     // Create a connection to the database
     const db = await mysql.createConnection(dbConfig);
     
-    // Execute the query with parameters
-    const [results] = await db.execute(query, [request_id, alumni_id, student_id, branch, topic]);
+    // Check for existing requests with the same alumni_id and student_id
+    const [existingRequests] = await db.execute(
+      `SELECT COUNT(*) as count FROM mentor_requests WHERE alumni_id = ? AND student_id = ?`,
+      [alumni_id, student_id]
+    );
+
+    if (existingRequests[0].count >= 2) {
+      // Close the database connection
+      await db.end();
+      return res.status(400).json({ error: 'Max limit of mentorship requests exceeded' });
+    }
+
+    // Insert the new request into the mentor_requests table
+    const query = `
+      INSERT INTO mentor_requests (request_id, alumni_id, student_id, branch, topic)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    await db.execute(query, [request_id, alumni_id, student_id, branch, topic]);
 
     // Close the database connection
     await db.end();
@@ -563,7 +573,6 @@ app.post('/api/requestMentorship', async (req, res) => {
     res.status(500).json({ error: 'Failed to send mentorship request' });
   }
 });
-
 
 // server.js
 app.get('/api/studentman/:student_id', async (req, res) => {
@@ -590,90 +599,91 @@ app.get('/api/studentman/:student_id', async (req, res) => {
   }
 });
 
-// app.post('/api/mentor-requests', async (req, res) => {
-//   const { alumni_id, student_id, topic } = req.body;
 
-//   if (!alumni_id || !student_id || !topic) {
-//     return res.status(400).json({ message: 'alumni_id, student_id, and topic are required' });
-//   }
+app.get('/api/mentor-requests/:alumniId', async (req, res) => {
+  const alumniId = req.params.alumniId;
+  const sql = `SELECT * FROM mentor_requests WHERE alumni_id = ?`;
 
-//   try {
-//     const db = await mysql.createConnection(dbConfig);
+  try {
+    // Create a connection
+    const db = await mysql.createConnection(dbConfig);
 
-//     // Fetch student branch
-//     const [studentRows] = await db.execute('SELECT branch FROM students WHERE student_id = ?', [student_id]);
-//     if (studentRows.length === 0) {
-//       await db.end();
-//       return res.status(404).json({ message: 'Student not found' });
-//     }
-//     const studentBranch = studentRows[0].branch;
+    // Execute the query
+    const [results] = await db.execute(sql, [alumniId]);
 
-//     // Fetch alumni industry
-//     const [alumniRows] = await db.execute('SELECT industry FROM alumni WHERE alumni_id = ?', [alumni_id]);
-//     if (alumniRows.length === 0) {
-//       await db.end();
-//       return res.status(404).json({ message: 'Alumni not found' });
-//     }
-//     const alumniIndustry = alumniRows[0].industry;
+    // Send results as JSON
+    res.json(results);
 
-//     // Validate branch matches industry
-//     if (studentBranch !== alumniIndustry) {
-//       await db.end();
-//       return res.status(400).json({ message: 'Student branch does not match alumni industry' });
-//     }
-
-//     // Count existing requests between this student and alumni
-//     const [countRows] = await db.execute(
-//       'SELECT COUNT(*) AS requestCount FROM mentor_requests WHERE student_id = ? AND alumni_id = ?',
-//       [student_id, alumni_id]
-//     );
-//     const requestCount = countRows[0].requestCount;
-//     const nthRequest = requestCount + 1;
-
-//     // Generate request_id
-//     const request_id = `${student_id}_${alumni_id}_${nthRequest}`;
-
-//     // Insert the new mentorship request
-//     await db.execute(
-//       'INSERT INTO mentor_requests (request_id, alumni_id, student_id, branch, topic) VALUES (?, ?, ?, ?, ?)',
-//       [request_id, alumni_id, student_id, studentBranch, topic]
-//     );
-
-//     await db.end();
-
-//     res.status(201).json({ message: 'Mentorship request created successfully', request_id });
-//   } catch (error) {
-//     console.error('Error creating mentorship request:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
+    // Close the connection
+    await db.end();
+  } catch (err) {
+    console.error("Error fetching requests:", err);
+    res.status(500).send('Server error');
+  }
+});
 
 
-// // Route to fetch mentorship requests for a student
-// app.get('/api/mentor-requests', async (req, res) => {
-//   const { student_id } = req.query;
 
-//   if (!student_id) {
-//     return res.status(400).json({ message: 'student_id is required' });
-//   }
+app.post('/api/session-mentoring', async (req, res) => {
+  const { alumni_id, student_id, request_id, linktosession, date, duration } = req.body;
 
-//   try {
-//     const db = await mysql.createConnection(dbConfig);
+  const sessionDate = date || new Date().toISOString().split("T")[0];
+  const sessionDuration = duration || 60;
 
-//     const [rows] = await db.execute(
-//       'SELECT request_id, alumni_id, topic, branch FROM mentor_requests WHERE student_id = ?',
-//       [student_id]
-//     );
+  try {
+    const db = await mysql.createConnection(dbConfig);
 
-//     await db.end();
+    // Add session to `session_mentoring` table
+    const query = `
+      INSERT INTO session_mentoring (alumni_id, student_id, request_id, linktosession, date, duration)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const [result] = await db.execute(query, [alumni_id, student_id, request_id, linktosession, sessionDate, sessionDuration]);
 
-//     res.status(200).json(rows);
-//   } catch (error) {
-//     console.error('Error fetching mentorship requests:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
+    // Update request status to "Accepted" in `mentor_requests` table
+    await db.execute(
+      `UPDATE mentor_requests SET status = 'Accepted' WHERE request_id = ?`,
+      [request_id]
+    );
 
+    await db.end();
+
+    res.status(201).json({
+      message: "Session added successfully",
+      sessionId: result.insertId,
+    });
+  } catch (error) {
+    console.error("Error adding session:", error);
+    res.status(500).json({ error: "Failed to add session" });
+  }
+});
+
+app.get('/api/student-sessions/:studentId', async (req, res) => {
+  const { studentId } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+
+    // Query to fetch sessions for the specific student
+    const query = `
+      SELECT id, date, duration, linktosession
+      FROM session_mentoring
+      WHERE student_id = ? AND date >= CURDATE()  -- Only fetch upcoming sessions
+    `;
+    const [sessions] = await db.execute(query, [studentId]);
+
+    await db.end();
+
+    if (sessions.length > 0) {
+      res.status(200).json(sessions);
+    } else {
+      res.status(404).json({ message: "No upcoming sessions found" });
+    }
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).json({ error: "Failed to fetch sessions" });
+  }
+});
 
 
 // Start the server
