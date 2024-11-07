@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import './login.css';
 
 function Login({ setUser }) {
   const [idnumber, setIdNumber] = useState('');
@@ -28,55 +29,55 @@ function Login({ setUser }) {
     const data = await response.json();
 
     if (response.ok) {
-      setUser({ idnumber, role, email: data.user.email }); // Set the user state with required fields
-      navigate(`/`); // Redirect based on role
+      setUser({ idnumber, role, email: data.user.email });
+      navigate(`/`);
     } else {
       setError(data.message);
     }
   };
 
   return (
-    <div>
-      <h2>Login Page</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="idnumber">ID Number:</label>
-          <input
-            type="text"
-            id="idnumber"
-            value={idnumber}
-            onChange={(e) => setIdNumber(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="role">Role:</label>
-          <select id="role" value={role} onChange={(e) => setRole(e.target.value)} required>
-            <option value="Student">Student</option>
-            <option value="Alumni">Alumni</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Sign In</button>
-      </form>
-      <p>
-        Don't have an account? <Link to="/signup">Sign Up</Link>
-      </p>
+    <div className="login">
+      <div className="login-box">
+        <h2>Welcome back</h2>
+        {error && <p className="error">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="idnumber">ID Number:</label>
+            <input
+              type="text"
+              id="idnumber"
+              value={idnumber}
+              onChange={(e) => setIdNumber(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="role">Role:</label>
+            <select id="role" value={role} onChange={(e) => setRole(e.target.value)} required>
+              <option value="Student">Student</option>
+              <option value="Alumni">Alumni</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit">Sign In</button>
+        </form>
+        <p>
+          Don't have an account? <Link to="/signup">Sign Up</Link>
+        </p>
+      </div>
     </div>
   );
 }
 
 export default Login;
-
-

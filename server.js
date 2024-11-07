@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const dbConfig = {
   host: 'localhost',
   user: 'root',
-  password: 'adhesh',
+  password: 'BeqFUzW8',
   database: 'mentorship_db',
 };
 
