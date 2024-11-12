@@ -69,7 +69,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/studentdashboard" element={<StudentDashboard user={user} />} />
         <Route path="/alumnidashboard" element={<AlumniDashboard user={user} />} />
-        <Route path="/admindashboard" element={<AdminDashboard />} />
+        <Route path="/admindashboard" element={<AdminDashboard user={user} />} />
         <Route path="/home" element={<Home />} />
         <Route path="/profile_student" element={<StudentProfile user={user} />} />
         <Route path="/profile_alumni" element={<AlumniProfile user={user} />} />

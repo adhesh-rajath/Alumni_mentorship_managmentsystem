@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './StudentDashboard.css';
+
 
 const StudentDashboard = ({ user }) => {
   const navigate = useNavigate();

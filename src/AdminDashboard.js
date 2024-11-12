@@ -12,7 +12,7 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       try {
         // Fetch mentor requests
-        const mentorResponse = await fetch('http://localhost:5000/api/mentors/requests');
+        const mentorResponse = await fetch('http://localhost:5000/api/mentors-requests');
         const mentorsData = await mentorResponse.json();
         setMentorRequests(mentorsData);
 

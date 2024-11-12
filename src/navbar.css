@@ -40,7 +40,7 @@
   color: #000000; /* Changed color to black */
   font-size: 24px; /* Increased font size */
   font-weight: 700; /* Bold font */
-  margin-left: 270px; /* Increased margin to move it closer to the center */
+  margin-left: 220px; /* Increased margin to move it closer to the center */
   flex-grow: 1; /* Pushes the heading towards the center */
   text-align: center;
 }
