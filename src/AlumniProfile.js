@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+//import './alumniProfile.css';
 
 function AlumniProfile({ user }) {
   const [bio, setBio] = useState('');

@@ -1,0 +1,90 @@
+/* Alumni Profile */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #fafbfc;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Profile Container */
+.profile-container {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Profile Information */
+.profile-container p,
+.profile-container h3 {
+  font-size: 16px;
+  color: #333;
+  margin: 0;
+}
+
+.profile-container p a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.profile-container p a:hover {
+  text-decoration: underline;
+}
+
+/* Edit Sections */
+.profile-container input[type="text"],
+.profile-container textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 5px;
+}
+
+.profile-container textarea {
+  resize: vertical;
+}
+
+/* Buttons */
+.profile-container button {
+  padding: 10px 15px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.profile-container button:hover {
+  background-color: #0056b3;
+}
+
+/* Message */
+.profile-container .message {
+  color: #333;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.profile-container .error {
+  color: red;
+}

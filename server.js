@@ -685,6 +685,88 @@ app.get('/api/student-sessions/:studentId', async (req, res) => {
   }
 });
 
+// Middleware to check if the user is an admin
+const isAdmin = (req, res, next) => {
+  const { role } = req.body; // Assume the role is passed in the body for simplicity
+  if (role !== 'admin') {
+    return res.status(403).json({ message: 'Access denied: Admins only' });
+  }
+  next();
+};
+
+// Admin: View biodata of a specific student by ID
+app.get('/api/admin/students/:idnumber/biodata', isAdmin, async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const [student] = await db.execute('SELECT * FROM profile_students WHERE id = ?', [idnumber]);
+
+    if (student.length > 0) {
+      res.status(200).json(student[0]);
+    } else {
+      res.status(404).json({ message: 'Student not found' });
+    }
+
+    await db.end();
+  } catch (error) {
+    console.error('Error fetching student biodata:', error);
+    res.status(500).json({ message: 'Error fetching student biodata' });
+  }
+});
+
+// Admin: View biodata of a specific alumnus by ID
+app.get('/api/admin/alumni/:idnumber/biodata', isAdmin, async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    const [alumnus] = await db.execute('SELECT * FROM profile_alumni WHERE id = ?', [idnumber]);
+
+    if (alumnus.length > 0) {
+      res.status(200).json(alumnus[0]);
+    } else {
+      res.status(404).json({ message: 'Alumnus not found' });
+    }
+
+    await db.end();
+  } catch (error) {
+    console.error('Error fetching alumni biodata:', error);
+    res.status(500).json({ message: 'Error fetching alumni biodata' });
+  }
+});
+
+/// Admin: Delete a specific student account by ID
+app.delete('/api/admin/students/:idnumber', isAdmin, async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    await db.execute('CALL delete_student(?)', [idnumber]);
+    res.status(200).json({ message: 'Student account deleted successfully' });
+    await db.end();
+  } catch (error) {
+    console.error('Error deleting student account:', error);
+    res.status(500).json({ message: 'Error deleting student account' });
+  }
+});
+
+// Admin: Delete a specific alumnus account by ID
+app.delete('/api/admin/alumni/:idnumber', isAdmin, async (req, res) => {
+  const { idnumber } = req.params;
+
+  try {
+    const db = await mysql.createConnection(dbConfig);
+    await db.execute('CALL delete_alumni(?)', [idnumber]);
+    res.status(200).json({ message: 'Alumni account deleted successfully' });
+    await db.end();
+  } catch (error) {
+    console.error('Error deleting alumni account:', error);
+    res.status(500).json({ message: 'Error deleting alumni account' });
+  }
+});
+
+
 
 // Start the server
 app.listen(port, () => {

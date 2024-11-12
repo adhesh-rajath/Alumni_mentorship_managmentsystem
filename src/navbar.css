@@ -1,36 +1,70 @@
-/* src/navbar.css */
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: rgb(235, 235, 127); /* Dark blue navbar */
-    padding: 10px 20px;
-  }
-  
-  .nav-left {
-    display: flex;
-  }
-  
-  .nav-right {
-    display: flex;
-    gap: 20px; /* Space between the links */
-  }
-  
-  .logo {
-    height: 50px; /* Adjust logo size as needed */
-  }
-  
-  .nav-link {
-    background-color: #f0f0f0; /* Light background color for the boxes */
-    color: darkblue; /* Text color */
-    padding: 10px 15px;
-    border-radius: 5px; /* Rounded corners */
-    text-decoration: none; /* Remove underline */
-    font-weight: bold; /* Make the text bold */
-    transition: background-color 0.3s ease; /* Smooth hover effect */
-  }
-  
-  .nav-link:hover {
-    background-color: #e0e0e0; /* Slightly darker background on hover */
-  }
-  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #a6c6f6; /* Corporate dark blue background */
+  padding: 15px 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 96%;
+  max-width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Space between logo and "Welcome, user" */
+}
+
+/* Style for the logo */
+.logo {
+  height: 60px;
+  margin-right: 15px;
+}
+
+.welcome-user {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Center-aligned heading */
+.nav-left::after {
+  content: "Alumni Mentorship Platform";
+  color: #000000; /* Changed color to black */
+  font-size: 24px; /* Increased font size */
+  font-weight: 700; /* Bold font */
+  margin-left: 270px; /* Increased margin to move it closer to the center */
+  flex-grow: 1; /* Pushes the heading towards the center */
+  text-align: center;
+}
+
+.nav-right {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-link {
+  background-color: transparent;
+  color: #ecf0f1;
+  padding: 8px 12px;
+  border-radius: 3px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #000000;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+body {
+  padding-top: 80px;
+}

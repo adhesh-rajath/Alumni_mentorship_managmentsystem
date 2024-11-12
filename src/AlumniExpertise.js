@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
+import './AlumniExpertise.css';
 function AlumniExpertise({ user }) {
   const [expertise, setExpertise] = useState([]);
   const [newExpertise, setNewExpertise] = useState('');

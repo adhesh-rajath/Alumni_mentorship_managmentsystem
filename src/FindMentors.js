@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import './findMentors.css';
 
 function FindMentors({ user }) {
   const [alumni, setAlumni] = useState([]);
